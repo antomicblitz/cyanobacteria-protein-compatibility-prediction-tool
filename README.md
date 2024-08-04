@@ -1,8 +1,5 @@
 # cyanobacteria-compatibility-prediction-tool
 
-Certainly. Here's a revised README file that incorporates the changes made to the script:
-markdownCopy# Protein Screening and Ranking Tool for Cyanobacterial Expression
-
 ## Overview
 
 This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, post-translational modifications (PTMs), cysteine content, and potential for disulfide bond formation.
