@@ -20,7 +20,7 @@ pip install biopython
 1. Prepare an input CSV file named 'input_accessions.csv' with one protein accession number per line.
 2. Run the script:
 python protein_analysis.py
-Copy3. Two output files will be generated:
+Two output files will be generated:
 - 'ranked_proteins.csv': Contains proteins that passed screening, ranked by their composite score.
 - 'excluded_proteins.csv': Lists proteins that did not pass screening and reasons for exclusion.
 
@@ -49,7 +49,6 @@ Each factor is normalized by dividing by the maximum value across all analyzed p
 Composite Score = (0.3 * Normalized Cys Density) +
 (0.4 * Normalized Potential Pairs) +
 (0.3 * Normalized Spacing Score)
-Copy
 ## Confidence Assignment
 
 Confidence levels are assigned as follows:
