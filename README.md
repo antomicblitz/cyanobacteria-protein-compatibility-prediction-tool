@@ -1,8 +1,8 @@
-# cyanobacteria-compatibility-prediction-tool
+# Cyanobacteria Protein Compatibility Prediction Tool
 
 ## Overview
 
-This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, post-translational modifications (PTMs), cysteine content, and potential for disulfide bond formation.
+This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, specific post-translational modifications (PTMs), and cysteine content. The tool provides detailed information about why each protein passes or fails the screening process.
 
 ## Requirements
 
@@ -13,16 +13,16 @@ This tool analyzes and ranks proteins based on their potential suitability for e
 
 1. Clone this repository or download the script.
 2. Ensure Python 3.6+ is installed on your system.
-3. Install required dependencies:
-pip install biopython
+3. The script will create a virtual environment and install the required dependencies automatically.
+
 ## Usage
 
 1. Prepare an input CSV file named 'input_accessions.csv' with one protein accession number per line.
 2. Run the script:
 python protein_analysis.py
-
+Copy
 Two output files will be generated:
-- 'ranked_proteins.csv': Contains proteins that passed screening, ranked by their composite score.
+- 'ranked_proteins.csv': Contains proteins that passed screening, ranked by their cysteine density.
 - 'excluded_proteins.csv': Lists proteins that did not pass screening and reasons for exclusion.
 
 ## Screening Process
@@ -30,32 +30,24 @@ Two output files will be generated:
 The script screens proteins based on the following criteria:
 
 1. Size: Proteins larger than 1500 amino acids are excluded.
-2. Post-Translational Modifications (PTMs): Proteins with PTMs not typically possible in cyanobacteria are excluded or flagged.
+2. Post-Translational Modifications (PTMs): Proteins with PTMs not typically possible in cyanobacteria are excluded.
 
 ### PTM Screening
 
-- Excluded PTMs: glycosylation, ubiquitination, SUMOylation, complex acetylation, methylation, farnesylation, geranylgeranylation, palmitoylation, and myristoylation.
-- Allowed PTMs: phosphorylation, disulfide bond formation.
-- Proteins annotated with "Not [PTM]" or "Absence of [PTM]" are not excluded but may receive a lower confidence score.
+- Excluded PTMs: complex glycosylation, ubiquitination, SUMOylation, farnesylation, geranylgeranylation, palmitoylation, and myristoylation.
+- Compatible PTMs: phosphorylation, simple glycosylation, methylation, acetylation, and disulfide bonds.
+- Proteins annotated with "Not [PTM]" or "Absence of [PTM]" for excluded PTMs are not excluded.
 
-## Scoring System
+## Ranking System
 
-The composite score is calculated based on three factors:
+Proteins are ranked based on their cysteine density, calculated as:
+Cysteine Density = (Number of cysteines / Protein length) * 100
 
-1. Cysteine Density: (Number of cysteines / Protein length) * 100
-2. Potential Disulfide Pairs: Count of cysteine pairs within 5-30 amino acids of each other
-3. Spacing Score: Count of cysteine pairs spaced 5-30 amino acids apart
-
-Each factor is normalized by dividing by the maximum value across all analyzed proteins. The composite score is then calculated as:
-Composite Score = (0.3 * Normalized Cys Density) +
-(0.4 * Normalized Potential Pairs) +
-(0.3 * Normalized Spacing Score)
 ## Confidence Assignment
 
 Confidence levels are assigned as follows:
 
 - High: Passes all screening criteria without any concerns.
-- Medium: Passes screening but has annotations suggesting absence of PTMs or other minor concerns.
 - Low: Does not pass screening due to size or presence of excluded PTMs.
 
 ## Output Description
@@ -66,27 +58,47 @@ Confidence levels are assigned as follows:
 - Name: Protein name/description
 - Length: Number of amino acids
 - Cys Density: Cysteines per 100 amino acids
-- Potential Pairs: Number of potential disulfide bond-forming cysteine pairs
-- Spacing Score: Score based on cysteine spacing
-- Composite Score: Final ranking score
 - Screening Result: "Passed" for all entries in this file
-- Confidence: High, Medium, or Low
+- Confidence: High or Low
+- Pass Reason: Detailed explanation of why the protein passed, including compatible PTMs found and high cysteine density if applicable
 
 ### excluded_proteins.csv
 
 - Accession: Protein accession number
 - Name: Protein name/description
-- Exclusion Reason: Specific reason for exclusion
+- Exclusion Reason: Specific reason for exclusion (size or incompatible PTM)
 - Confidence: Always "Low" for excluded proteins
+
+## Interpreting Results
+
+- Proteins with high cysteine density (>5%) are noted in the Pass Reason column.
+- Compatible PTMs found in the protein are listed in the Pass Reason column.
+- Proteins without detected compatible PTMs or high cysteine density will be marked as "No incompatible PTMs found".
 
 ## Limitations and Considerations
 
 - This tool provides theoretical predictions and should be used as a starting point for selecting proteins for experimental validation.
-- The scoring system prioritizes cysteine content and potential disulfide bonds, which may not be the only factors determining successful expression in cyanobacteria.
-- PTM annotations in protein databases may not be exhaustive or may contain errors.
+- The detection of PTMs is based on annotations in the protein database and may not be exhaustive.
 - While the tool considers some cyanobacteria-specific PTM capabilities, the exact PTM landscape can vary between different cyanobacterial species.
 - Experimental validation is crucial to confirm actual expression success and proper protein folding in cyanobacteria.
 - Other factors such as codon usage, protein solubility, and specific folding requirements are not considered in this analysis.
+
+## Customization
+
+You can modify the following parameters in the script:
+
+- `max_size`: Maximum allowed protein size (default: 1500 amino acids)
+- `excluded_ptms`: List of PTMs incompatible with cyanobacteria
+- `compatible_ptms`: Dictionary of PTMs compatible with cyanobacteria
+- Cysteine density threshold for "high cysteine density" classification (default: 5%)
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Ensure you have internet access, as the script fetches protein information from NCBI.
+2. Check that your input CSV file is correctly formatted with one accession number per line.
+3. Verify that you have the necessary permissions to create files in the script's directory.
 
 ## License
 
