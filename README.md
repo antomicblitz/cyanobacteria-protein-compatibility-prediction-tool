@@ -1,5 +1,8 @@
 # cyanobacteria-compatibility-prediction-tool
 
+Certainly. Here's a revised README file that incorporates the changes made to the script:
+markdownCopy# Protein Screening and Ranking Tool for Cyanobacterial Expression
+
 ## Overview
 
 This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, post-translational modifications (PTMs), cysteine content, and potential for disulfide bond formation.
@@ -34,8 +37,8 @@ The script screens proteins based on the following criteria:
 
 ### PTM Screening
 
-- Excluded PTMs: glycosylation, phosphorylation, methylation, acetylation, lipidation, hydroxylation, carboxylation, ubiquitination, SUMOylation, palmitoylation, farnesylation, geranylgeranylation, myristoylation, and pyroglutamation.
-- Allowed PTMs: disulfide bond formation.
+- Excluded PTMs: glycosylation, ubiquitination, SUMOylation, complex acetylation, methylation, farnesylation, geranylgeranylation, palmitoylation, and myristoylation.
+- Allowed PTMs: phosphorylation, disulfide bond formation.
 - Proteins annotated with "Not [PTM]" or "Absence of [PTM]" are not excluded but may receive a lower confidence score.
 
 ## Scoring System
@@ -85,10 +88,11 @@ Confidence levels are assigned as follows:
 - This tool provides theoretical predictions and should be used as a starting point for selecting proteins for experimental validation.
 - The scoring system prioritizes cysteine content and potential disulfide bonds, which may not be the only factors determining successful expression in cyanobacteria.
 - PTM annotations in protein databases may not be exhaustive or may contain errors.
+- While the tool considers some cyanobacteria-specific PTM capabilities, the exact PTM landscape can vary between different cyanobacterial species.
 - Experimental validation is crucial to confirm actual expression success and proper protein folding in cyanobacteria.
+- Other factors such as codon usage, protein solubility, and specific folding requirements are not considered in this analysis.
 
 ## License
-
 
 This project is licensed under the MIT License:
 
