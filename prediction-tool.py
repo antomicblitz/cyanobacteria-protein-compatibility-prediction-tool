@@ -39,12 +39,11 @@ def analyze_protein(sequence, features, max_size=1500):
         return None, f"Protein too large ({len(sequence)} aa)", "Low"
 
     excluded_ptms = [
-        "glycosyl", "phospho", "methyl", "acetyl", "lipid", 
-        "hydroxyl", "carboxyl", "ubiquitin", "sumo", "palmitoyl",
-        "farnesyl", "geranylgeranyl", "myristoyl", "pyroglutam"
+        "glycosyl", "ubiquitin", "sumo", "acetyl", "methyl",
+        "farnesyl", "geranylgeranyl", "palmitoyl", "myristoyl"
     ]
     
-    allowed_ptms = ["disulfide"]
+    allowed_ptms = ["phospho", "disulfide"]
     
     ptms = [feature for feature in features if feature.type == "Site"]
     confidence = "High"
