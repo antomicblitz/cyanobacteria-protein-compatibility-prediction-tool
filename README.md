@@ -15,7 +15,6 @@ This tool analyzes and ranks proteins based on their potential suitability for e
 2. Ensure Python 3.6+ is installed on your system.
 3. Install required dependencies:
 pip install biopython
-Copy
 ## Usage
 
 1. Prepare an input CSV file named 'input_accessions.csv' with one protein accession number per line.
