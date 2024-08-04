@@ -1,4 +1,4 @@
-# cyanobacteria-compatibility-prection-tool
+# cyanobacteria-compatibility-prediction-tool
 
 ## Overview
 
