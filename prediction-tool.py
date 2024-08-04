@@ -36,47 +36,53 @@ def fetch_protein_info(accession):
 
 def analyze_protein(sequence, features, max_size=1500):
     if len(sequence) > max_size:
-        return None, f"Protein too large ({len(sequence)} aa)", "Low"
+        return None, f"Protein too large ({len(sequence)} aa)", "Low", None
 
     excluded_ptms = [
-        "glycosyl", "ubiquitin", "sumo", "acetyl", "methyl",
-        "farnesyl", "geranylgeranyl", "palmitoyl", "myristoyl"
+        "complex glycosyl", "ubiquitin", "sumo", "farnesyl", 
+        "geranylgeranyl", "palmitoyl", "myristoyl"
     ]
     
-    allowed_ptms = ["phospho", "disulfide"]
+    compatible_ptms = {
+        "phospho": "Phosphorylation",
+        "glycosyl": "Simple glycosylation",
+        "methyl": "Methylation",
+        "acetyl": "Acetylation",
+        "disulfide": "Disulfide bond"
+    }
+    
+    found_compatible_ptms = set()
     
     ptms = [feature for feature in features if feature.type == "Site"]
-    confidence = "High"
     for ptm in ptms:
         ptm_description = ptm.qualifiers.get('note', [''])[0].lower()
-        if any(allowed_ptm in ptm_description for allowed_ptm in allowed_ptms):
-            continue
         if any(re.search(rf'\b{excluded_ptm}\w*', ptm_description) for excluded_ptm in excluded_ptms):
             if "not " in ptm_description or "absence of " in ptm_description:
-                confidence = "Medium"
                 continue
-            return None, f"Excluded PTM found: {ptm_description}", "Low"
+            return None, f"Excluded PTM found: {ptm_description}", "Low", None
+        
+        for ptm_key, ptm_name in compatible_ptms.items():
+            if ptm_key in ptm_description:
+                found_compatible_ptms.add(ptm_name)
     
     cys_count = sequence.count('C')
     cys_density = (cys_count / len(sequence)) * 100
     
-    cys_positions = [i for i, aa in enumerate(sequence) if aa == 'C']
-    potential_pairs = sum(1 for i, pos in enumerate(cys_positions[:-1])
-                          if 5 <= cys_positions[i+1] - pos <= 30)
+    pass_reasons = []
+    if found_compatible_ptms:
+        pass_reasons.append(f"Compatible PTMs found: {', '.join(found_compatible_ptms)}")
+    else:
+        pass_reasons.append("No incompatible PTMs found")
     
-    spacing = {}
-    for i in range(len(cys_positions) - 1):
-        space = cys_positions[i+1] - cys_positions[i]
-        spacing[space] = spacing.get(space, 0) + 1
+    if cys_density > 5:
+        pass_reasons.append("High cysteine density")
     
-    spacing_score = sum(count for space, count in spacing.items() if 5 <= space <= 30)
+    pass_reason = "; ".join(pass_reasons)
     
     return {
         'length': len(sequence),
         'cys_density': cys_density,
-        'potential_pairs': potential_pairs,
-        'spacing_score': spacing_score
-    }, "Passed", confidence
+    }, "Passed", "High", pass_reason
 
 def rank_proteins(accessions):
     results = []
@@ -84,12 +90,13 @@ def rank_proteins(accessions):
     for accession in accessions:
         try:
             name, sequence, features = fetch_protein_info(accession)
-            analysis, message, confidence = analyze_protein(sequence, features)
+            analysis, message, confidence, pass_reason = analyze_protein(sequence, features)
             if analysis:
                 analysis['accession'] = accession
                 analysis['name'] = name
                 analysis['screening_result'] = message
                 analysis['confidence'] = confidence
+                analysis['pass_reason'] = pass_reason
                 results.append(analysis)
             else:
                 excluded.append({
@@ -112,24 +119,7 @@ def rank_proteins(accessions):
         print("No proteins passed the screening criteria.")
         return [], excluded
 
-    max_density = max(r['cys_density'] for r in results)
-    max_pairs = max(r['potential_pairs'] for r in results)
-    max_spacing = max(r['spacing_score'] for r in results)
-    
-    weights = {
-        'cys_density': 0.3,
-        'potential_pairs': 0.4,
-        'spacing_score': 0.3
-    }
-    
-    for r in results:
-        r['composite_score'] = (
-            weights['cys_density'] * (r['cys_density'] / max_density) +
-            weights['potential_pairs'] * (r['potential_pairs'] / max_pairs) +
-            weights['spacing_score'] * (r['spacing_score'] / max_spacing)
-        )
-    
-    return sorted(results, key=lambda x: x['composite_score'], reverse=True), excluded
+    return sorted(results, key=lambda x: x['cys_density'], reverse=True), excluded
 
 def main():
     input_file = 'input_accessions.csv'
@@ -144,18 +134,16 @@ def main():
 
     with open(output_file, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Accession', 'Name', 'Length', 'Cys Density', 'Potential Pairs', 'Spacing Score', 'Composite Score', 'Screening Result', 'Confidence'])
+        writer.writerow(['Accession', 'Name', 'Length', 'Cys Density', 'Screening Result', 'Confidence', 'Pass Reason'])
         for protein in ranked_proteins:
             writer.writerow([
                 protein['accession'],
                 protein['name'],
                 protein['length'],
                 f"{protein['cys_density']:.2f}",
-                protein['potential_pairs'],
-                protein['spacing_score'],
-                f"{protein['composite_score']:.4f}",
                 protein['screening_result'],
-                protein['confidence']
+                protein['confidence'],
+                protein['pass_reason']
             ])
 
     with open(excluded_file, 'w', newline='') as f:
