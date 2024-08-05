@@ -20,7 +20,7 @@ This tool analyzes and ranks proteins based on their potential suitability for e
 1. Prepare an input CSV file named 'input_accessions.csv' with one protein accession number per line.
 2. Run the script:
 python protein_analysis.py
-Copy
+
 Two output files will be generated:
 - 'ranked_proteins.csv': Contains proteins that passed screening, ranked by their cysteine density.
 - 'excluded_proteins.csv': Lists proteins that did not pass screening and reasons for exclusion.
