@@ -34,26 +34,39 @@ def fetch_protein_info(accession):
     
     return record.description, str(record.seq), record.features
 
+def check_n_glycosylation_sites(sequence):
+    pattern = re.compile(r'N[^P][ST]')
+    return len(pattern.findall(sequence))
+
 def analyze_protein(sequence, features, max_size=1500):
     if len(sequence) > max_size:
         return None, f"Protein too large ({len(sequence)} aa)", "Low", None
 
-    excluded_ptms = [
-        "complex glycosyl", "ubiquitin", "sumo", "farnesyl", 
-        "geranylgeranyl", "palmitoyl", "myristoyl"
-    ]
-    
     compatible_ptms = {
         "phospho": "Phosphorylation",
-        "glycosyl": "Simple glycosylation",
+        "n-linked glycosyl": "N-linked glycosylation",
+        "glcnac-asparagine": "N-linked glycosylation",
+        "oligosaccharide-asparagine": "N-linked glycosylation",
+        "simple mannose-type": "Simple mannose-type glycan",
+        "s-layer glyco": "S-layer glycoprotein",
+        "o-linked glycosyl": "Simple O-linked glycosylation",
         "methyl": "Methylation",
         "acetyl": "Acetylation",
         "disulfide": "Disulfide bond"
     }
-    
+
+    excluded_ptms = [
+        "complex glycosyl", "complex n-linked", "gal-galnac",
+        "sialic acid", "fucosyl", "ubiquitin", "sumo", "farnesyl", 
+        "geranylgeranyl", "palmitoyl", "myristoyl"
+    ]
+
     found_compatible_ptms = set()
+    n_glycosylation_sites = check_n_glycosylation_sites(sequence)
     
     ptms = [feature for feature in features if feature.type == "Site"]
+    has_ptm_annotations = bool(ptms)
+
     for ptm in ptms:
         ptm_description = ptm.qualifiers.get('note', [''])[0].lower()
         if any(re.search(rf'\b{excluded_ptm}\w*', ptm_description) for excluded_ptm in excluded_ptms):
@@ -71,18 +84,26 @@ def analyze_protein(sequence, features, max_size=1500):
     pass_reasons = []
     if found_compatible_ptms:
         pass_reasons.append(f"Compatible PTMs found: {', '.join(found_compatible_ptms)}")
-    else:
+    elif has_ptm_annotations:
         pass_reasons.append("No incompatible PTMs found")
+    else:
+        pass_reasons.append("No PTM annotations available")
+    
+    if n_glycosylation_sites > 0:
+        pass_reasons.append(f"Potential N-glycosylation sites: {n_glycosylation_sites}")
     
     if cys_density > 5:
         pass_reasons.append("High cysteine density")
     
     pass_reason = "; ".join(pass_reasons)
     
+    confidence = "High" if has_ptm_annotations else "Medium"
+    
     return {
         'length': len(sequence),
         'cys_density': cys_density,
-    }, "Passed", "High", pass_reason
+        'n_glycosylation_sites': n_glycosylation_sites
+    }, "Passed", confidence, pass_reason
 
 def rank_proteins(accessions):
     results = []
@@ -134,13 +155,14 @@ def main():
 
     with open(output_file, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Accession', 'Name', 'Length', 'Cys Density', 'Screening Result', 'Confidence', 'Pass Reason'])
+        writer.writerow(['Accession', 'Name', 'Length', 'Cys Density', 'N-Glycosylation Sites', 'Screening Result', 'Confidence', 'Pass Reason'])
         for protein in ranked_proteins:
             writer.writerow([
                 protein['accession'],
                 protein['name'],
                 protein['length'],
                 f"{protein['cys_density']:.2f}",
+                protein['n_glycosylation_sites'],
                 protein['screening_result'],
                 protein['confidence'],
                 protein['pass_reason']
