@@ -1,5 +1,5 @@
 # Cyanobacteria Protein Compatibility Prediction Tool
-
+![hello]([https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true](https://github.com/antomicblitz/cyanobacteria-protein-compatibility-prediction-tool/blob/main/example.png?raw=true))
 ## Overview
 
 This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, specific post-translational modifications (PTMs), and cysteine content. The tool provides detailed information about why each protein passes or fails the screening process, including handling proteins with no PTM annotations.
