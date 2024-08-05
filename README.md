@@ -2,7 +2,7 @@
 
 ## Overview
 
-This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, specific post-translational modifications (PTMs), and cysteine content. The tool provides detailed information about why each protein passes or fails the screening process.
+This tool analyzes and ranks proteins based on their potential suitability for expression in cyanobacteria. It evaluates proteins based on size, specific post-translational modifications (PTMs), and cysteine content. The tool provides detailed information about why each protein passes or fails the screening process, including handling proteins with no PTM annotations.
 
 ## Requirements
 
@@ -37,6 +37,7 @@ The script screens proteins based on the following criteria:
 - Excluded PTMs: complex glycosylation, ubiquitination, SUMOylation, farnesylation, geranylgeranylation, palmitoylation, and myristoylation.
 - Compatible PTMs: phosphorylation, simple glycosylation, methylation, acetylation, and disulfide bonds.
 - Proteins annotated with "Not [PTM]" or "Absence of [PTM]" for excluded PTMs are not excluded.
+- Proteins with no PTM annotations are flagged and given a "Medium" confidence score.
 
 ## Ranking System
 
@@ -47,7 +48,8 @@ Cysteine Density = (Number of cysteines / Protein length) * 100
 
 Confidence levels are assigned as follows:
 
-- High: Passes all screening criteria without any concerns.
+- High: Passes all screening criteria and has PTM annotations.
+- Medium: Passes screening criteria but lacks PTM annotations.
 - Low: Does not pass screening due to size or presence of excluded PTMs.
 
 ## Output Description
@@ -59,8 +61,8 @@ Confidence levels are assigned as follows:
 - Length: Number of amino acids
 - Cys Density: Cysteines per 100 amino acids
 - Screening Result: "Passed" for all entries in this file
-- Confidence: High or Low
-- Pass Reason: Detailed explanation of why the protein passed, including compatible PTMs found and high cysteine density if applicable
+- Confidence: High or Medium
+- Pass Reason: Detailed explanation of why the protein passed, including compatible PTMs found, high cysteine density, or lack of PTM annotations
 
 ### excluded_proteins.csv
 
@@ -71,14 +73,16 @@ Confidence levels are assigned as follows:
 
 ## Interpreting Results
 
+- High confidence proteins are those with known compatible PTMs or confirmed absence of incompatible PTMs.
+- Medium confidence proteins lack PTM annotations, indicating potential uncertainty about their PTM status.
 - Proteins with high cysteine density (>5%) are noted in the Pass Reason column.
 - Compatible PTMs found in the protein are listed in the Pass Reason column.
-- Proteins without detected compatible PTMs or high cysteine density will be marked as "No incompatible PTMs found".
 
 ## Limitations and Considerations
 
 - This tool provides theoretical predictions and should be used as a starting point for selecting proteins for experimental validation.
 - The detection of PTMs is based on annotations in the protein database and may not be exhaustive.
+- Proteins without PTM annotations are included but flagged, reflecting uncertainty about their PTM status.
 - While the tool considers some cyanobacteria-specific PTM capabilities, the exact PTM landscape can vary between different cyanobacterial species.
 - Experimental validation is crucial to confirm actual expression success and proper protein folding in cyanobacteria.
 - Other factors such as codon usage, protein solubility, and specific folding requirements are not considered in this analysis.
@@ -99,7 +103,16 @@ If you encounter any issues:
 1. Ensure you have internet access, as the script fetches protein information from NCBI.
 2. Check that your input CSV file is correctly formatted with one accession number per line.
 3. Verify that you have the necessary permissions to create files in the script's directory.
+4. If you receive errors related to PTM annotations, ensure that the NCBI database is accessible and that the protein entries contain the expected information.
 
+## Future Improvements
+
+Potential areas for future enhancement include:
+
+1. Incorporating more sophisticated PTM prediction algorithms.
+2. Adding analysis of protein secondary structure and its impact on expression.
+3. Implementing a more nuanced scoring system for protein suitability in cyanobacteria.
+4. Including comparison with other expression systems, such as E. coli.
 ## License
 
 This project is licensed under the MIT License:
